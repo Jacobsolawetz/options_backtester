@@ -11,6 +11,7 @@ from scipy.stats import norm
 import pandas as pd
 from datetime import date
 import numpy as np
+from utils import *
 #%matplotlib inline
 '''
 EXAMPLE

@@ -57,6 +57,9 @@ def calculate_strike(option_type, SPY, VIX, Z_SCORE):
     if option_type == 'C': 
         return math.exp((VIX/100) * (math.pow(1/12, 1/2))*Z_SCORE)*SPY
 
+###implement get_strike_and_leverage, for dynamic strikes and leverage
+
+
 from datetime import datetime
 def is_third_friday(d):
     #d = datetime.strptime(s, '%b %d, %Y')
