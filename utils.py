@@ -19,6 +19,11 @@ def strike_from_delta(S0, T, r, sigma, delta, right):
         strike = S0 * math.exp(norm.ppf(delta * math.exp ((r)*T) ) * sigma * math.sqrt(T) + ((math.pow(sigma,2.0))/2.0)* T)
     return strike
 
+
+
+#“To understand how the SKEW Index translate to risk, consider that each five-point move in the SKEW Index adds or subtracts around 1.3 or 1.4 percentage points to the risk of a two-standard deviation move. Similarly, a five-point move in the index adds
+#or subtracts approximately 0.3 percentage points to a three-standard deviation move.”
+
 def get_implied_vol(option_type, k, s, vix, skew):
     #assumptions - these were empirically based on "Fitting the Smile.xlx" and the idea that implied volatility 
     #increases mostly linearly with some none linearity defined by the skewness of the underlying distribution
