@@ -17,15 +17,15 @@ class Visualizer:
     def save_figs(self):
         pp = PdfPages("output/" + self.backtest_name + '.pdf')
         
-        df = self.results
-        ax = df[['daily_returns_cumulative']].plot()
+        viz_df = self.results
+        ax = viz_df[['daily_returns_cumulative']].plot()
         ax.set_title('daily_returns_cumulative')
         ax.set_ylabel('x-return')
         fig = ax.get_figure()
         pp.savefig(fig)
         fig.clear()
         
-        ax = df.groupby('roll_period')['roll_cumulative_return_raw'].last().hist(bins=40)
+        ax = viz_df.groupby('roll_period')['roll_cumulative_return_raw'].last().hist(bins=40)
         ax.set_title('histogram of roll returns')
         fig = ax.get_figure()
         pp.savefig(fig)
@@ -37,11 +37,11 @@ class Visualizer:
         return None
         
     def print_results(self):
-        df = self.results
+        print_df = self.results
         text_file = open("output/" + self.backtest_name + ".txt", "w")
-        max_roll_drawdown = df.groupby('roll_period')['roll_cumulative_return_raw'].last().min()
-        max_intra_roll_drawdown = df['roll_cumulative_return_raw'].min()
-        max_daily_drawdown = df['portfolio_returns_raw'].min()
+        max_roll_drawdown = print_df.groupby('roll_period')['roll_cumulative_return_raw'].last().min()
+        max_intra_roll_drawdown = print_df['roll_cumulative_return_raw'].min()
+        max_daily_drawdown = print_df['portfolio_returns_raw'].min()
         text_file.write("max roll drawdown :" + str(max_roll_drawdown) + "\n\n")
         text_file.write("max intra roll drawdown :" + str(max_intra_roll_drawdown) + "\n\n")
         text_file.write("max daily drawdown :" + str(max_daily_drawdown) + "\n\n")

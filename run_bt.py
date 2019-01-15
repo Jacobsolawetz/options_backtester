@@ -11,10 +11,11 @@ warnings.filterwarnings('ignore')
 from backtester import Backtester
 from visualizer import Visualizer
 
-backtest_name = 'two_scores_out_8x'
-strategy = [['P', 2.0, 'SELL']]
+backtest_name = '1.5_scores_out_10x'
+strategy = [['P', 1.0, 'SELL'], ['P', 1.5, 'SELL'], ['P', 3.0, 'BUY'], ['P', 3.0, 'BUY'], ['P', 3.0, 'BUY']]
 roll_day = 10
-leverage = 8
+leverage = 3
+
 
 tester = Backtester(roll_day, strategy, leverage)
 tester.load_data()

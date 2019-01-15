@@ -89,6 +89,7 @@ class Backtester:
         df['date'] = pd.to_datetime(df['date'])
         df['days_to_expir'] =  (df['next_expiration'] - df['date']).dt.days
         df = df[~df['next_expiration'].isnull()]
+        df['leverage'] = self.leverage
         #now the backtest framework is set up
         self.df = df
         return None
@@ -237,7 +238,7 @@ class Backtester:
         df['returns_list'] = returns_list
         df['portfolio_returns_raw'] = portfolio_returns
         #Lever
-        df['portfolio_returns_raw'] = df['portfolio_returns_raw'] * 3
+        df['portfolio_returns_raw'] = df['portfolio_returns_raw'] * self.leverage
         #lever other portfolio metrics as well like greeks
         
         #cum_sum of returns within roll period
