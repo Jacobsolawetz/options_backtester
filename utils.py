@@ -64,9 +64,21 @@ def calculate_strike(option_type, SPY, VIX, Z_SCORE):
 
 ###implement get_strike_and_leverage, for dynamic strikes and leverage
 
-def calculate_maintenance_requirements(k, price, SPY):
+def calculate_maintenance_requirements(option, SPY):
+    if option.option_type = 'P':
+        return put_maintenance_requirements(option.k, option.price, SPY)
+    elif option.option_type = 'C':
+        return call_maintenance_requirements(option.k, option.price, SPY)
+    else:
+        return False #error code
+
+
+def put_maintenance_requirements(k, price, SPY):
     #get the otm-ness of the the option: strike - SPY 
-    otm = SPY - k
+    if(SPY > k):
+        otm = SPY - k
+    else:
+        otm = 0
 
     #calculate the three difference formulas
 
