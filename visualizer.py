@@ -30,6 +30,16 @@ class Visualizer:
         fig = ax.get_figure()
         pp.savefig(fig)
         fig.clear()
+        
+        viz_df['margin_viz'] = viz_df['maintenance']/viz_df['roll_posted']
+        ax = viz_df['margin_viz'].plot()
+        ax.set_title('margin_vizualization')
+        ax.set_ylabel('percent_margin_call')
+        fig = ax.get_figure()
+        pp.savefig(fig)
+        fig.clear()
+        
+        
 
         
         
@@ -48,6 +58,8 @@ class Visualizer:
 
         
         text_file.close()
+        
+        print_df.to_csv("output/" + self.backtest_name + ".csv")
         return None
         
         

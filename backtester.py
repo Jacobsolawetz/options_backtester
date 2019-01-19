@@ -101,13 +101,14 @@ class Backtester:
         rolled_options = []
         rolled_strikes = []
         rolled_prices = []
+        roll_posted = []
         df = self.df
         for index, row in df.iterrows():
             #hardcoding 2 as risk free rate for now
             options_rolled = []
             option_strikes = []
             option_prices = []
-            for option in self.strategy:
+            for i, option in enumerate(self.strategy):
                 option_type = option[0]
                 zscore = option[1]
                 buy_sell = option[2]
@@ -122,15 +123,21 @@ class Backtester:
                 options_rolled.append([o])
                 option_strikes.append(strike)
                 option_prices.append(o.calc_price)
+                if i == 0:
+                    #this is the sold put
+                    amt_posted = strike/self.leverage                
+                
             rolled_options.append(options_rolled)
             rolled_strikes.append(option_strikes)
             rolled_prices.append(option_prices)
+            roll_posted.append(amt_posted)
         df['rolled_options'] = rolled_options
         df['rolled_strikes'] = rolled_strikes
         df['rolled_prices'] = rolled_prices
         df['previous_rolled_strikes'] = df['rolled_strikes'].shift(1)
         df['previous_rolled_strikes'] = df['previous_rolled_strikes'].fillna(method = 'bfill')
         df['previous_days_to_expir'] = (df['next_expiration'].shift(1).fillna(method = 'bfill') - df['date']).dt.days
+        df['roll_posted'] = roll_posted
         #now we create a time series of the same options measured as time decays and the market moves
         options_list = []
         prices_list = []
@@ -144,6 +151,8 @@ class Backtester:
         portfolio_thetas = []
         portfolio_gammas = []
         previous_option_price = []
+        maintenances_list = []
+        margin_triggers = []
         
         for index, row in df.iterrows():
             #hardcoding 2 as risk free rate for now
@@ -173,13 +182,24 @@ class Backtester:
                 o.get_gamma()
                 gammas.append(o.gamma)
                 
+                
+                
                 ##caculate price on previously rolled option
                 ##if backtester is too slow we could add in a codition that it must be roll to caculate, otherwise previous option = current option
+                
                 previous_strike = row['previous_rolled_strikes'][i]
                 previous_implied_vol = get_implied_vol(option_type, previous_strike, row['SPY'], row['VIX'], row['SKEW']) 
                 o_previous = Option(buy_sell, option_type, row['SPY'], previous_strike, row['previous_days_to_expir']/365, None, .02, previous_implied_vol/100, 0.03)
                 o_previous.get_price_delta()
                 previous_rolled_option_price.append(o_previous.calc_price)
+                
+                #-price for sold calls
+                #for the sold naked put
+                if i == 0:
+ 
+                    maintenance = calculate_maintenance_requirements(o_previous, row['SPY'])
+                    margin_trigger = maintenance > row['roll_posted']
+                    
                 
                 
             previous_option_price.append(previous_rolled_option_price)
@@ -200,6 +220,9 @@ class Backtester:
             portfolio_vegas.append(portfolio_vega)
             portfolio_thetas.append(portfolio_theta)
             portfolio_gammas.append(portfolio_gamma)
+            maintenances_list.append(maintenance)
+            margin_triggers.append(margin_trigger)
+            
         
         df['previous_option_current_price'] = previous_option_price
         df['options'] = options_list
@@ -213,9 +236,11 @@ class Backtester:
         df['portfolio_vega'] = portfolio_vegas
         df['portfolio_theta'] = portfolio_thetas
         df['portfolio_gamma'] = portfolio_gammas
+        df['maintenance'] = maintenances_list
 
         df['previous_prices'] = df['prices'].shift(1)
         df['previous_prices'] = df['previous_prices'].fillna(method = 'bfill')
+        df['margin_trigger'] = margin_triggers
 
 
         returns_list = []
