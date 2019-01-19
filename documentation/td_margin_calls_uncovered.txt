@@ -1,0 +1,15 @@
+TD Ameritrade Margin Req's https://www.tdameritrade.com/retail-en_us/resources/pdf/AMTD086.pdf
+
+Because writing uncovered - or naked - options represents greater risk of loss, the margin account requirements are higher. The writing account requirements are higher. The writing of uncovered puts and calls requires an initial deposit and maitenance of the **greatest** of the following three formulas:
+
+a) 20% of the underlying stock less out-of-the money amount, if any, plus 100% of the current value market value of the option(s)
+b) For calls, 10% of the market value of the underlying stock PLUS the premium value. For puts, 10% of the exercise value of the underlying stock PLUS the premium value
+c) $50 per contract plus 100% of the premium
+
+Mininum Equity Requirements
+
+For uncovered equity call options, the minimum equity required is $5,000 in marginable securities or cash. For uncovered equity put options, the minimum equity required is the maximum potional loss for all uncovered equity puts in the account. The minimum equity required to write uncovered options is $5,000.
+
+Uncovered Index Options
+
+For index options, whether calls or puts, broad-based or narrow-based, carried as short uncovered positions in the account, the maintenance requirements are calculated us itng the same formula as used for the uncovered equity options. The initial deposit and maitenance requirements must equal 20% of the current index minus the out-of-the-money amount, if any, plus the premium amount received. The amount must meet or exceed a minimum amount equal to 10% of the current index value times the index multiplier, plus the option's market value.

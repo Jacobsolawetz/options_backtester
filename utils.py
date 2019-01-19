@@ -64,6 +64,24 @@ def calculate_strike(option_type, SPY, VIX, Z_SCORE):
 
 ###implement get_strike_and_leverage, for dynamic strikes and leverage
 
+def calculate_maintenance_requirements(k, price, SPY):
+    #get the otm-ness of the the option: strike - SPY 
+    otm = SPY - k
+
+    #calculate the three difference formulas
+
+    #FORMULA A = 20% of the underlying - otm amount + 100% of the current MV of the toptions
+    A = SPY * .2 - otm + price #this might run into issues with assuming the multiplier out of the equation as option.price is so small. it's also received, so it's not like you need to post money
+
+    #FORMULA B = 10% of the strike price + the premium value (note: this is for puts only, 10% of MV of the underlying + premium value for calls)
+    B = k * .1 + price
+
+    #FORUMLA C = $50 per contract plus 100% of the premium (might not be necessary as it is not as market dependent)
+
+    #return the MAX of A, B, C
+
+    return max(A,B)
+
 
 from datetime import datetime
 def is_third_friday(d):
