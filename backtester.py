@@ -20,10 +20,11 @@ from utils import *
 
 class Backtester:
     
-    def __init__(self,roll_day, strategy, leverage):
+    def __init__(self,roll_day, strategy, leverage, backtest_type):
         self.roll_day = roll_day
         self.strategy = strategy
         self.leverage = leverage
+        self.backtest_type = backtest_type
         
         
     def load_data(self):
@@ -116,16 +117,45 @@ class Backtester:
                 #problem is we don't know implied vol until we define strike
                 #don't know strike until we get implied vol
                 #strike = strike_from_delta(row['roll_SPY'],row['roll_days_to_expir']/365,.01,row['roll_VIX']/100,.30,option_type)
-                strike = calculate_strike(option_type, row['roll_SPY'], row['roll_VIX'], zscore)
-                implied_vol = get_implied_vol(option_type, strike, row['roll_SPY'], row['roll_VIX'], row['roll_SKEW'])    
-                o = Option(buy_sell, option_type, row['roll_SPY'], strike, row['roll_days_to_expir']/365, None, .01, implied_vol/100, 0.03)
-                o.get_price_delta()
-                options_rolled.append([o])
-                option_strikes.append(strike)
-                option_prices.append(o.calc_price)
-                if i == 0:
-                    #this is the sold put
-                    amt_posted = strike/self.leverage                
+                if self.backtest_type == 'constant_margin':
+                    if i == 0:
+                        strike = calculate_strike(option_type, row['roll_SPY'], row['roll_VIX'], zscore)
+                        implied_vol = get_implied_vol(option_type, strike, row['roll_SPY'], row['roll_VIX'], row['roll_SKEW'])    
+                        o = Option(buy_sell, option_type, row['roll_SPY'], strike, row['roll_days_to_expir']/365, None, .01, implied_vol/100, 0.03)
+                        o.get_price_delta()
+                        options_rolled.append([o])
+                        option_strikes.append(strike)
+                        option_prices.append(o.calc_price)
+                        if i == 0:
+                            #this is the sold put
+                            amt_posted = strike/self.leverage
+                        #maitenance = strike1 - strike2
+                        #.7 = maitenance / amt_posted
+                        #.7 * amt_posted 
+                        #willing to lose at maximum 70%
+                        strike2 = strike - (.7*amt_posted)
+                        implied_vol = get_implied_vol(option_type, strike2, row['roll_SPY'], row['roll_VIX'], row['roll_SKEW'])    
+                        o2 = Option('BUY', option_type, row['roll_SPY'], strike2, row['roll_days_to_expir']/365, None, .01, implied_vol/100, 0.03)
+                        o2.get_price_delta()
+                        options_rolled.append([o2])
+                        option_strikes.append(strike2)
+                        option_prices.append(o2.calc_price) 
+                        
+                    
+                
+                
+                else:
+                    
+                    strike = calculate_strike(option_type, row['roll_SPY'], row['roll_VIX'], zscore)
+                    implied_vol = get_implied_vol(option_type, strike, row['roll_SPY'], row['roll_VIX'], row['roll_SKEW'])    
+                    o = Option(buy_sell, option_type, row['roll_SPY'], strike, row['roll_days_to_expir']/365, None, .01, implied_vol/100, 0.03)
+                    o.get_price_delta()
+                    options_rolled.append([o])
+                    option_strikes.append(strike)
+                    option_prices.append(o.calc_price)
+                    if i == 0:
+                        #this is the sold put
+                        amt_posted = strike/self.leverage                
                 
             rolled_options.append(options_rolled)
             rolled_strikes.append(option_strikes)
@@ -138,6 +168,7 @@ class Backtester:
         df['previous_rolled_strikes'] = df['previous_rolled_strikes'].fillna(method = 'bfill')
         df['previous_days_to_expir'] = (df['next_expiration'].shift(1).fillna(method = 'bfill') - df['date']).dt.days
         df['roll_posted'] = roll_posted
+        df['roll_posted'] =  df['roll_posted'].shift(1).fillna(method = 'bfill')
         #now we create a time series of the same options measured as time decays and the market moves
         options_list = []
         prices_list = []
@@ -196,9 +227,18 @@ class Backtester:
                 #-price for sold calls
                 #for the sold naked put
                 if i == 0:
- 
-                    maintenance = calculate_maintenance_requirements(o_previous, row['SPY'])
-                    margin_trigger = maintenance > row['roll_posted']
+                    if (len(self.strategy) > 1 and (self.strategy[0][2] == 'SELL' and self.strategy[1][2] == 'BUY')):
+                        #then we're doing a spread
+                        maintenance = row['previous_rolled_strikes'][0] - row['previous_rolled_strikes'][1]
+                        margin_trigger = maintenance > row['roll_posted']
+                        
+                    elif self.backtest_type == 'constant_margin':
+                        maintenance = row['previous_rolled_strikes'][0] - row['previous_rolled_strikes'][1]
+                        margin_trigger = maintenance > row['roll_posted']
+                        
+                    else:
+                        maintenance = calculate_maintenance_requirements(o_previous, row['SPY'])
+                        margin_trigger = maintenance > row['roll_posted']
                     
                 
                 
@@ -283,6 +323,9 @@ class Backtester:
         df['daily_returns_cumulative'] = (df['roll_cumulative_return_raw'] + 1) * df['previous_roll_return']
         #df[(df['date'] > '2005-2-25') & (df['date'] < '2011-9-16')]['daily_returns_cumulative'].plot()
         df['roll_period'] = df['roll_date'].shift(1)
+        #calculate margin pct
+        df['margin_pct'] = df['maintenance']/df['roll_posted']
+        
         self.results = df
         print('backtest complete')
         return None

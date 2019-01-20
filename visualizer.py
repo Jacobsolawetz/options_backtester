@@ -31,8 +31,8 @@ class Visualizer:
         pp.savefig(fig)
         fig.clear()
         
-        viz_df['margin_viz'] = viz_df['maintenance']/viz_df['roll_posted']
-        ax = viz_df['margin_viz'].plot()
+        
+        ax = viz_df['margin_pct'].round(2).plot()
         ax.set_title('margin_vizualization')
         ax.set_ylabel('percent_margin_call')
         fig = ax.get_figure()
