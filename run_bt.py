@@ -11,12 +11,12 @@ warnings.filterwarnings('ignore')
 from backtester import Backtester
 from visualizer import Visualizer
 
-backtest_name = '2_scores_constantmargin_8x'
-strategy = [['P', 2.0, 'SELL']]
+backtest_name = 'classic'
+strategy = [['P', 1.0, 'SELL']]
 #backtest_type = 'normal'
-backtest_type = 'constant_margin'
+backtest_type = 'normal'
 roll_day = 10
-leverage = 8
+leverage = 3
 
 
 tester = Backtester(roll_day, strategy, leverage, backtest_type)

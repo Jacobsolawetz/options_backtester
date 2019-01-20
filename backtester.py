@@ -142,6 +142,8 @@ class Backtester:
                         option_strikes.append(strike2)
                         option_prices.append(o2.calc_price) 
                         
+                        #we don't need to get any other options calculations in this strategy
+                        break
                     
                 
                 
