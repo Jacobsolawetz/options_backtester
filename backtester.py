@@ -34,6 +34,7 @@ class Backtester:
         market_prices['SPY'] = pd.to_numeric(market_prices['SPY'])
         market_prices['VIX'] = pd.to_numeric(market_prices['VIX'])
         market_prices['SKEW'] = pd.to_numeric(market_prices['SKEW'])
+        market_prices['RUT'] = pd.to_numeric(market_prices['RUT'])
         self.market_prices = market_prices
         print('historical data loaded')
         return None
