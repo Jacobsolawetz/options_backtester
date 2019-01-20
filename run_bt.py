@@ -11,12 +11,13 @@ warnings.filterwarnings('ignore')
 from backtester import Backtester
 from visualizer import Visualizer
 
-backtest_name = 'classic'
-strategy = [['P', 1.0, 'SELL']]
+backtest_name = '2score_8x_constantmargin'
+#in order to do constant_margin now we need to also write the bought call in there with arbitrary z-score
+strategy = [['P', 2.0, 'SELL'], ['P', 2.0, 'BUY'] ]
 #backtest_type = 'normal'
-backtest_type = 'normal'
+backtest_type = 'constant_margin'
 roll_day = 10
-leverage = 3
+leverage = 8
 
 
 tester = Backtester(roll_day, strategy, leverage, backtest_type)

@@ -37,9 +37,16 @@ def get_implied_vol(option_type, k, s, vix, skew):
     skew_power = 4
     otm = abs((s - k)) / s
     #starts at a base of the VIX, linear in %otm, nonlinear in skew
+    
+    #what about when S is less than K for Puts... we shouldn't use abs to approximate
     if option_type == 'P':
-        implied_vol = vix_multiplier*vix + otm_multiplier*otm #+ skew_multiplier*math.pow((1 + otm),(skew_power)) * (-1) * skew \
-                                                                                        #+ skew_multiplier * skew
+        if s > k:
+            implied_vol = vix_multiplier*vix + otm_multiplier*otm #+ skew_multiplier*math.pow((1 + otm),(skew_power)) * (-1) * skew \
+        if s < k:
+            #then the surface looks like a call that is out of the money
+            otm_shift = abs(.08 - otm) - .08
+            implied_vol = vix_multiplier*vix + otm_multiplier*otm_shift            
+                                                                                #+ skew_multiplier * skew
     if option_type == 'C':
         #calls decrease in implied vol and then increase again
         #again we could improve the model
@@ -85,8 +92,10 @@ def put_maintenance_requirements(k, price, SPY):
     A = SPY * .2 - otm  
 
     #FORMULA B = 10% of the strike price + the premium value (note: this is for puts only, 10% of MV of the underlying + premium value for calls)
-    B = k * .1 + price
-
+    #bug here... when we SELL the price is negative
+    #going to fix with abs
+    B = k * .1 + abs(price)
+    
     #FORUMLA C = $50 per contract plus 100% of the premium (might not be necessary as it is not as market dependent)
 
     #return the MAX of A, B, C

@@ -31,17 +31,38 @@ class Visualizer:
         pp.savefig(fig)
         fig.clear()
         
+        viz_df = viz_df.reset_index()
+        yearly_returns = (viz_df.groupby(viz_df['date'].dt.year)['daily_returns_cumulative'].last() / viz_df.groupby(viz_df['date'].dt.year)['daily_returns_cumulative'].last().shift(1).fillna(1)) - 1
+        ax = yearly_returns.plot.bar()
+        ax.set_title('yearly returns')
+        ax.set_ylabel('pct return')
+        fig = ax.get_figure()
+        pp.savefig(fig)
+        fig.clear()
         
+        viz_df = viz_df.set_index('date')
         ax = viz_df['margin_pct'].round(2).plot()
-        ax.set_title('margin_vizualization')
+        ax.set_title('margin_visualization')
         ax.set_ylabel('percent_margin_call')
         fig = ax.get_figure()
         pp.savefig(fig)
         fig.clear()
         
+        ax = viz_df.groupby('roll_period')['portfolio_delta'].first().plot()
+        ax.set_title('roll_deltas')
+        ax.set_ylabel('delta')
+        fig = ax.get_figure()
+        pp.savefig(fig)
+        fig.clear()
+        
+        ax = viz_df['portfolio_delta'].hist(bins=40)
+        ax.set_title('portfolio_delta histogram')
+        ax.set_ylabel('delta')
+        fig = ax.get_figure()
+        pp.savefig(fig)
+        fig.clear()
         
 
-        
         
         pp.close()
         return None
