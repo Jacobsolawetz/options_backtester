@@ -1,0 +1,6 @@
+max roll drawdown :-0.1214146127702609
+
+max intra roll drawdown :-0.2635037886944196
+
+max daily drawdown :-0.15063617729250825
+
