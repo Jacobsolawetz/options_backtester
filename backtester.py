@@ -20,11 +20,12 @@ from utils import *
 
 class Backtester:
     
-    def __init__(self,roll_day, strategy, leverage, backtest_type):
+    def __init__(self,roll_day, strategy, leverage, backtest_type, max_loss = None):
         self.roll_day = roll_day
         self.strategy = strategy
         self.leverage = leverage
         self.backtest_type = backtest_type
+        self.max_loss = max_loss
         
         
     def load_data(self):
@@ -65,6 +66,10 @@ class Backtester:
         third_friday = bt_df[bt_df['date'].apply(is_third_friday)]
         third_friday['next_expiration'] = third_friday['date'].shift(-1)
         #find roll dates from schedule
+        #print(third_friday.reset_index())
+        third_friday = third_friday.reset_index()[(third_friday.reset_index()['index'].astype(int) - self.roll_day) > -1]
+        #print([ str(int(x) - self.roll_day) for  x in list(third_friday.index)])
+        third_friday = third_friday.set_index('index')
         third_friday['roll_date'] = list(bt_df[bt_df.index.isin([ str(int(x) - self.roll_day) for  x in list(third_friday.index)])]['date'])
         third_friday['next_roll_date'] = third_friday['roll_date'].shift(-1)
         #find what the market was like on that roll_day
@@ -134,7 +139,7 @@ class Backtester:
                         #.7 = maitenance / amt_posted
                         #.7 * amt_posted 
                         #willing to lose at maximum 70%
-                        strike2 = strike - (.7*amt_posted)
+                        strike2 = strike - (self.max_loss*amt_posted)
                         implied_vol = get_implied_vol(option_type, strike2, row['roll_SPY'], row['roll_VIX'], row['roll_SKEW'])    
                         o2 = Option('BUY', option_type, row['roll_SPY'], strike2, row['roll_days_to_expir']/365, None, .01, implied_vol/100, 0.03)
                         o2.get_price_delta()
@@ -307,8 +312,32 @@ class Backtester:
         df['portfolio_returns_raw'] = portfolio_returns
         #Lever
         df['portfolio_returns_raw'] = df['portfolio_returns_raw'] * self.leverage
-        #lever other portfolio metrics as well like greeks
         
+        ##initialize delta hedging 
+        ##short the spy to keep delta at a steady .3
+        df['spy_return'] = (df['SPY'] - df['SPY'].shift(1)) / (df['SPY'].shift(1))
+        #0 for first return
+        #df['spy_return'] = df['spy_return'].fillna(0)
+        
+        
+        #lever other portfolio metrics as well like greeks
+        df['portfolio_delta'] = df['portfolio_delta'] * self.leverage
+        
+        #df['delta_adjustment'] = .6 - df['portfolio_delta']
+        #take the delta adjustment one step in the future (that is you look at your portfolio delta at the end of the day and then short the spy by that amount)
+        #df['delta_adjustment'] = df['delta_adjustment'].shift(1).fillna(0)
+        
+        #df['short_spy_return'] = df['delta_adjustment'] * df['spy_return']
+        #df['portfolio_returns_raw'] = df['portfolio_returns_raw'] + df['short_spy_return'] 
+        
+        
+        
+        
+        df['portfolio_vega']  = df['portfolio_vega'] * self.leverage
+        df['portfolio_theta'] = df['portfolio_theta'] * self.leverage
+        df['portfolio_gamma'] =  df['portfolio_gamma'] * self.leverage
+        
+    
         #cum_sum of returns within roll period
         df['roll_period'] = df['roll_date'].shift(1)
         df['roll_period'] = df['roll_period'].fillna(method = 'bfill')
